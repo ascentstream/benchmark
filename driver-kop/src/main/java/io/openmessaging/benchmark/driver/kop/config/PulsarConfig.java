@@ -28,4 +28,14 @@ public class PulsarConfig {
     // consumer configs
     public int maxTotalReceiverQueueSizeAcrossPartitions = 50000;
     public int receiverQueueSize = 1000;
+
+    public PersistentConfig persistent = new PersistentConfig();
+
+
+    public static class PersistentConfig {
+        public int ensembleSize = 3;
+        public int writeQuorumSize = 3;
+        public int ackQuorumSize = 2;
+        public boolean deduplicationEnabled = false;
+    }
 }

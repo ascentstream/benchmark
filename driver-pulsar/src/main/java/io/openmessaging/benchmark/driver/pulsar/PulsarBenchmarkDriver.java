@@ -26,6 +26,7 @@ import io.openmessaging.benchmark.driver.BenchmarkProducer;
 import io.openmessaging.benchmark.driver.ConsumerCallback;
 import io.openmessaging.benchmark.driver.pulsar.config.PulsarClientConfig.PersistenceConfiguration;
 import io.openmessaging.benchmark.driver.pulsar.config.PulsarConfig;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -36,6 +37,7 @@ import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminBuilder;
@@ -124,7 +126,9 @@ public class PulsarBenchmarkDriver implements BenchmarkDriver {
                         .batchingMaxBytes(config.producer.batchingMaxBytes)
                         .blockIfQueueFull(config.producer.blockIfQueueFull)
                         .sendTimeout(0, TimeUnit.MILLISECONDS)
-                        .maxPendingMessages(config.producer.pendingQueueSize);
+                        .maxPendingMessages(config.producer.pendingQueueSize)
+                        .roundRobinRouterBatchingPartitionSwitchFrequency(
+                                config.producer.batchingPartitionSwitchFrequencyByPublishDelay);
 
         try {
             // Create namespace and set the configuration
@@ -234,7 +238,7 @@ public class PulsarBenchmarkDriver implements BenchmarkDriver {
                 .topic(topic)
                 .subscriptionName(subscriptionName)
                 .receiverQueueSize(config.consumer.receiverQueueSize)
-                .maxTotalReceiverQueueSizeAcrossPartitions(Integer.MAX_VALUE)
+                .maxTotalReceiverQueueSizeAcrossPartitions(config.consumer.maxTotalReceiverQueueSizeAcrossPartitions)
                 .poolMessages(true)
                 .subscribeAsync();
     }

@@ -20,4 +20,5 @@ public class PulsarConsumerConfig {
 
     public int receiverQueueSize = 10000;
     public SubscriptionType subscriptionType = SubscriptionType.Failover;
+    public int maxTotalReceiverQueueSizeAcrossPartitions = Integer.MAX_VALUE;
 }
