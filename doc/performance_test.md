@@ -177,3 +177,8 @@ KoP, Pulsar, Kafka
 ## 8. 结果分析
 
 TODO
+
+## 9. 参考文档
+
+- [StreamNative: Kafka-Pulsar Performance Test Report](https://github.com/streamnative/openmessaging-benchmark/blob/master/blog/benchmarking-pulsar-kafka-a-more-accurate-perspective-on-pulsar-performance.pdf)
+- [Confluent: Kafka fastest messaging system](https://www.confluent.io/blog/kafka-fastest-messaging-system/)
