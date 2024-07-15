@@ -41,6 +41,20 @@ KoP, Pulsar, Kafka
 
 ## 5. 相关核心配置
 
+- Durability Level
+  - KoP/Pulsar: 
+    - Replication: SYNC(ensemble=3, writeQuorum=3, ackQuorum=2)
+    - Bookkeeper(ASYNC): 
+      - Enable journaling
+        - journalWriteData=true
+        - journalSyncData=false
+      - Disable journaling
+        - journalWriteData=false
+        - journalSyncData=false
+  - Kafka:
+    - Replication: SYNC(ack=all, min.insync.replicas=2)
+    - Log: ASYNC(log.flush.interval.messages=10000, log.flush.interval.ms=1000)
+
 - Pulsar
     - Broker.conf
       ```properties
@@ -133,43 +147,28 @@ KoP, Pulsar, Kafka
 - 场景1
     - Pulsar
         - Enable journaling
-            - Publish Throughput:
-            - Consume Throughput:
-            - Publish Latency:
-            - End-to-End Latency:
+            - Benchmark result:
             - CPU:
             - Memory:
             - Disk:
         - Disable journaling
-            - Publish Throughput:
-            - Consume Throughput:
-            - Publish Latency:
-            - End-to-End Latency:
+            - Benchmark result:
             - CPU:
             - Memory:
             - Disk:
     - KoP
         - Enable journaling
-            - Publish Throughput:
-            - Consume Throughput:
-            - Publish Latency:
-            - End-to-End Latency:
+            - Benchmark result:
             - CPU:
             - Memory:
             - Disk:
         - Disable journaling
-            - Publish Throughput:
-            - Consume Throughput:
-            - Publish Latency:
-            - End-to-End Latency:
+            - Benchmark result:
             - CPU:
             - Memory:
             - Disk:
     - Kafka
-        - Publish Throughput:
-        - Consume Throughput:
-        - Publish Latency:
-        - End-to-End Latency:
+        - Benchmark result:
         - CPU:
         - Memory:
         - Disk:
