@@ -2,7 +2,7 @@
 
 ## 1. 测试范围
 
-KoP, Pulsar, Kafka
+KoP, Pulsar, Kafka, KoP Proxy
 
 ## 2. 测试工具
 
@@ -18,7 +18,7 @@ KoP, Pulsar, Kafka
 - 软件配置
     - OS: CentOS 7.9
     - Java: Oracle JDK 17
-    - Pulsar: 2.10.6
+    - Pulsar: [2.10.7.1](https://github.com/ascentstream/pulsar/releases/tag/v2.10.7.1)
     - Kafka: 3.4.1
     - KoP: [2.10.7.1](https://github.com/ascentstream/asp-kop/releases/tag/v2.10.7.1)
     - Bookkeeper: 4.14.8
@@ -42,18 +42,33 @@ KoP, Pulsar, Kafka
 ## 5. 相关核心配置
 
 - Durability Level
-  - KoP/Pulsar: 
-    - Replication: SYNC(ensemble=3, writeQuorum=3, ackQuorum=2)
-    - Bookkeeper(ASYNC): 
-      - Enable journaling
-        - journalWriteData=true
-        - journalSyncData=false
-      - Disable journaling
-        - journalWriteData=false
-        - journalSyncData=false
-  - Kafka:
-    - Replication: SYNC(ack=all, min.insync.replicas=2)
-    - Log: ASYNC(log.flush.interval.messages=10000, log.flush.interval.ms=1000)
+    - Level1:
+        - KoP/Pulsar:
+            - Replication: SYNC(ensemble=3, writeQuorum=3, ackQuorum=2)
+            - Bookkeeper(ASYNC):
+                - Enable journaling
+                    - journalWriteData=true
+                    - journalSyncData=false
+                - Disable journaling
+                    - journalWriteData=false
+                    - journalSyncData=false
+        - Kafka:
+            - Replication: SYNC(ack=all, min.insync.replicas=2)
+            - Log: ASYNC(log.flush.interval.messages=10000, log.flush.interval.ms=1000)
+
+    - Level2:
+        - KoP/Pulsar:
+        - Replication: ASYNC(ensemble=3, writeQuorum=3, ackQuorum=1)
+        - Bookkeeper(ASYNC):
+            - Enable journaling
+                - journalWriteData=true
+                - journalSyncData=false
+            - Disable journaling
+                - journalWriteData=false
+                - journalSyncData=false
+        - Kafka:
+            - Replication: ASYNC(ack=1, min.insync.replicas=2)
+            - Log: ASYNC(log.flush.interval.messages=10000, log.flush.interval.ms=1000)
 
 - Pulsar
     - Broker.conf
@@ -76,11 +91,11 @@ KoP, Pulsar, Kafka
       ```
     - Broker JVM options
       ```text
-      -Xmx8G -Xms8G -XX:MaxDirectMemorySize=8G
+      -Xmx6G -Xms6G -XX:MaxDirectMemorySize=6G
       ```
     - Bookkeeper JVM options
       ```text
-      -Xmx8G -Xms8G -XX:MaxDirectMemorySize=8G
+      -Xmx6G -Xms6G -XX:MaxDirectMemorySize=6G
       ```
     - Client Settings
       ```properties
@@ -101,7 +116,7 @@ KoP, Pulsar, Kafka
       ```
     - Broker JVM options
       ```text
-      -Xmx16G -Xms16G -XX:MaxDirectMemorySize=8G
+      -Xmx12G -Xms12G -XX:MaxDirectMemorySize=12G
       ```
 - Benchmark
     - Driver config
@@ -127,6 +142,10 @@ KoP, Pulsar, Kafka
 | 10 | 1      | 512                  | 16        | 1             | 16                         | 100B         | [1-topic-512-partition-16p-16c-100b](../workloads/asp/1-topic-512-partition/1-topic-512-partition-16p-16c-100b.yaml) |
 | 11 | 1      | 512                  | 16        | 1             | 16                         | 1KB          | [1-topic-512-partition-16p-16c-1kb](../workloads/asp/1-topic-512-partition/1-topic-512-partition-16p-16c-1kb.yaml)   |
 | 12 | 1      | 512                  | 16        | 1             | 16                         | 64KB         | [1-topic-512-partition-16p-16c-64kb](../workloads/asp/1-topic-512-partition/1-topic-512-partition-16p-16c-64kb.yaml) |
+
+- 后续规划
+
+增加Catch-up read测试
 
 - 测试步骤
     - 启动Pulsar/KoP/Kafka集群
