@@ -17,8 +17,8 @@ driverClass: io.openmessaging.benchmark.driver.pulsar.PulsarBenchmarkDriver
 
 # Pulsar client-specific configuration
 client:
-  serviceUrl: pulsar://localhost:6650
-  httpUrl: http://localhost:8080
+  serviceUrl: pulsar://192.168.0.58:6650
+  httpUrl: http://192.168.0.58:8080
   ioThreads: 16
   connectionsPerBroker: 8
   clusterName: local

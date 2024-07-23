@@ -20,7 +20,7 @@ consumerType: kafka
 
 # Pulsar configs
 pulsarConfig:
-  serviceUrl: pulsar://localhost:6650
+  serviceUrl: pulsar://192.168.0.58:6650
   # producer configs
   batchingEnabled: true
   batchingMaxPublishDelayMs: 1
@@ -39,7 +39,7 @@ pulsarConfig:
 
 # Kafka configs
 kafkaConfig: |
-  bootstrap.servers=localhost:9092
+  bootstrap.servers=192.168.0.58:9092
   acks=all
   linger.ms=10
   batch.size=1048576
