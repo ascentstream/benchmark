@@ -52,7 +52,6 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.pulsar.client.admin.PulsarAdmin;
-import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.ConsumerBuilder;
 import org.apache.pulsar.client.api.ProducerBuilder;
@@ -106,13 +105,16 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
 
         final PulsarConfig pulsarConfig = config.pulsarConfig;
 
-        try (PulsarAdmin admin1 = PulsarAdmin.builder().serviceHttpUrl(pulsarConfig.serviceUrl).build()) {
+        try (PulsarAdmin admin1 =
+                PulsarAdmin.builder().serviceHttpUrl(pulsarConfig.serviceUrl).build()) {
             // Set namespace policies
             PulsarConfig.PersistentConfig pc = pulsarConfig.persistent;
-            admin1.namespaces().setDeduplicationStatus(
-                    "public/default", pc.deduplicationEnabled);
-            admin1.namespaces().setPersistence("public/default", new
-                    PersistencePolicies(pc.ensembleSize, pc.writeQuorumSize, pc.ackQuorumSize, 1.0));
+            admin1.namespaces().setDeduplicationStatus("public/default", pc.deduplicationEnabled);
+            admin1
+                    .namespaces()
+                    .setPersistence(
+                            "public/default",
+                            new PersistencePolicies(pc.ensembleSize, pc.writeQuorumSize, pc.ackQuorumSize, 1.0));
         } catch (Throwable ex) {
             log.error("Failed to connect to Pulsar service at {}", pulsarConfig.serviceUrl, ex);
             throw new RuntimeException(ex);

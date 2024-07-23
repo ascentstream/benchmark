@@ -31,7 +31,6 @@ public class PulsarConfig {
 
     public PersistentConfig persistent = new PersistentConfig();
 
-
     public static class PersistentConfig {
         public int ensembleSize = 3;
         public int writeQuorumSize = 3;
