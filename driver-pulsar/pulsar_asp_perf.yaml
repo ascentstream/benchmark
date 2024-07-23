@@ -21,7 +21,7 @@ client:
   httpUrl: http://192.168.0.58:8080
   ioThreads: 16
   connectionsPerBroker: 8
-  clusterName: local
+  clusterName: kop-performance-test
   namespacePrefix: benchmark/ns
   topicType: persistent
   persistence:
@@ -33,7 +33,7 @@ client:
   tlsEnableHostnameVerification: false
   tlsTrustCertsFilePath:
   authentication:
-    plugin:
+    plugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
     data: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiJ9.uHMshd2yCvUPTrq7RQDkrzkl_fyyrAE7y_WxGaoCLgA
 
 # Producer configuration
