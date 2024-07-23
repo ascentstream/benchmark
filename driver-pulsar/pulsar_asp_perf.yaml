@@ -34,7 +34,7 @@ client:
   tlsTrustCertsFilePath:
   authentication:
     plugin:
-    data:
+    data: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiJ9.uHMshd2yCvUPTrq7RQDkrzkl_fyyrAE7y_WxGaoCLgA
 
 # Producer configuration
 producer:
