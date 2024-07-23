@@ -17,7 +17,7 @@ name: max-rate-1-topic-16-partition-1p-1c-1kb
 topics: 1
 partitionsPerTopic: 16
 messageSize: 1024
-payloadFile: "payload/payload-1kb.data"
+payloadFile: "payload/payload-1Kb.data"
 subscriptionsPerTopic: 1
 consumerPerSubscription: 1
 producersPerTopic: 1
