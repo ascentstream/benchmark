@@ -133,8 +133,8 @@ KoP, Pulsar, Kafka, KoP Proxy
 
 - 场景
 
-| 场景 | Topics | Partitions per topic | Producers | Subscriptions | Consumers per subscription | Message Size |                                                       Workload                                                       |
-|----|--------|----------------------|-----------|---------------|----------------------------|--------------|----------------------------------------------------------------------------------------------------------------------|
+| 场景 | Topics | Partitions per topic | Producers | Subscriptions | Consumers per subscription | Message Size |                                                         Workload                                                         |
+|----|--------|----------------------|-----------|---------------|----------------------------|--------------|--------------------------------------------------------------------------------------------------------------------------|
 | 1  | 1      | 1                    | 1         | 1             | 1                          | 100B         | [1-topic-1-partition-1p-1c-100b](../workloads/asp/max/1-topic-1-partition/1-topic-1-partition-1p-1c-100b.yaml)           |
 | 2  | 1      | 1                    | 1         | 1             | 1                          | 1KB          | [1-topic-1-partition-1p-1c-1kb](../workloads/asp/max/1-topic-1-partition/1-topic-1-partition-1p-1c-1kb.yaml)             |
 | 3  | 1      | 1                    | 1         | 1             | 1                          | 64KB         | [1-topic-1-partition-1p-1c-64kb](../workloads/asp/max/1-topic-1-partition/1-topic-1-partition-1p-1c-64kb.yaml)           |
