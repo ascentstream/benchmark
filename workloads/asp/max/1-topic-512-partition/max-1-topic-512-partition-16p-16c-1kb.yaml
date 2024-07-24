@@ -12,16 +12,15 @@
 # limitations under the License.
 #
 
-name: 10k-1-topic-512-partition-4p-4c-100b
+name: max-rate-1-topic-512-partition-4p-4c-1kb
 
 topics: 1
 partitionsPerTopic: 512
-messageSize: 100
-payloadFile: "payload/payload-100b.data"
+messageSize: 1024
+payloadFile: "payload/payload-1Kb.data"
 subscriptionsPerTopic: 1
-consumerPerSubscription: 4
-producersPerTopic: 4
-producerRate: 10000
+consumerPerSubscription: 16
+producersPerTopic: 16
+producerRate: 10000000
 consumerBacklogSizeGB: 0
 testDurationMinutes: 15
-
