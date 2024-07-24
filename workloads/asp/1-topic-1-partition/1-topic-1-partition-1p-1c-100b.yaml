@@ -12,7 +12,7 @@
 # limitations under the License.
 #
 
-name: max-rate-1-topic-1-partition-1p-1c-100b
+name: 20k-1-topic-1-partition-1p-1c-100b
 
 topics: 1
 partitionsPerTopic: 1
@@ -21,7 +21,7 @@ payloadFile: "payload/payload-100b.data"
 subscriptionsPerTopic: 1
 consumerPerSubscription: 1
 producersPerTopic: 1
-producerRate: 10000000
+producerRate: 20000
 consumerBacklogSizeGB: 0
 testDurationMinutes: 15
 
