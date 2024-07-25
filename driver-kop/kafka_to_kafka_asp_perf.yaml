@@ -41,8 +41,8 @@ pulsarConfig:
 kafkaConfig: |
   bootstrap.servers=192.168.0.58:9092
   acks=all
-  linger.ms=10
-  batch.size=1048576
+  linger.ms=1
+  batch.size=131072
   group.id=benchGroup
   auto.offset.reset=earliest
   enable.auto.commit=false
