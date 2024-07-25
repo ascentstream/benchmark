@@ -42,7 +42,7 @@ pulsarConfig:
 
 # Kafka configs
 kafkaConfig: |
-  bootstrap.servers=192.168.0.58:9092
+  bootstrap.servers=PLAINTEXT://192.168.0.54:9092
   acks=all
   linger.ms=1
   batch.size=131072
