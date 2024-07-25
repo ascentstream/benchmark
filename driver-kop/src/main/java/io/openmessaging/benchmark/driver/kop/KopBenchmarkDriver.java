@@ -239,7 +239,7 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
     private PulsarAdmin getPulsarAdmin(PulsarConfig config) throws PulsarClientException {
         PulsarAdminBuilder builder = PulsarAdmin.builder().serviceHttpUrl(config.httpServiceUrl);
         if (config.authPluginClassName != null) {
-            builder.authentication(config.authPluginClassName, config.authParams);
+            builder.authentication(config.authPluginClassName, config.authParamsString);
         }
         return builder.build();
     }

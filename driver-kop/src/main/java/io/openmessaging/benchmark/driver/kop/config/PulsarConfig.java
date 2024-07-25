@@ -20,7 +20,7 @@ public class PulsarConfig {
     public String httpServiceUrl;
 
     public String authPluginClassName;
-    public String authParams;
+    public String authParamsString;
 
     // producer configs
     public boolean batchingEnabled = true;
