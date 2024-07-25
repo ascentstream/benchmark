@@ -12,7 +12,7 @@
 # limitations under the License.
 #
 
-name: max-rate-1-topic-512-partition-4p-4c-1kb
+name: max-rate-1-topic-512-partition-16p-16c-1kb
 
 topics: 1
 partitionsPerTopic: 512
