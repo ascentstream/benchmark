@@ -52,6 +52,7 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.pulsar.client.admin.PulsarAdmin;
+import org.apache.pulsar.client.admin.PulsarAdminBuilder;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.ConsumerBuilder;
 import org.apache.pulsar.client.api.ProducerBuilder;
@@ -105,8 +106,7 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
 
         final PulsarConfig pulsarConfig = config.pulsarConfig;
 
-        try (PulsarAdmin admin1 =
-                PulsarAdmin.builder().serviceHttpUrl(pulsarConfig.serviceUrl).build()) {
+        try (PulsarAdmin admin1 = getPulsarAdmin(pulsarConfig)) {
             // Set namespace policies
             PulsarConfig.PersistentConfig pc = pulsarConfig.persistent;
             admin1.namespaces().setDeduplicationStatus("public/default", pc.deduplicationEnabled);
@@ -234,6 +234,14 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
         if (client != null) {
             client.close();
         }
+    }
+
+    private PulsarAdmin getPulsarAdmin(PulsarConfig config) throws PulsarClientException {
+        PulsarAdminBuilder builder = PulsarAdmin.builder().serviceHttpUrl(config.httpServiceUrl);
+        if (config.authPluginClassName != null) {
+            builder.authentication(config.authPluginClassName, config.authParams);
+        }
+        return builder.build();
     }
 
     private PulsarClient getPulsarClient(String serviceUrl) throws PulsarClientException {
