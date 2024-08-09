@@ -32,10 +32,7 @@ import io.streamnative.pulsar.handlers.kop.KafkaPayloadProcessor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -82,6 +79,8 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
     private PulsarClient client = null;
     private ProducerBuilder<byte[]> producerBuilder = null;
     private ConsumerBuilder<ByteBuffer> consumerBuilder = null;
+
+    private final Set<String> topics = new HashSet<>();
 
     public static Config loadConfig(File file) throws IOException {
         return mapper.readValue(file, Config.class);
@@ -159,6 +158,7 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
                 .whenComplete(
                         (result, throwable) -> {
                             if (throwable == null) {
+                                topics.add(topic);
                                 future.complete(result);
                             } else {
                                 future.completeExceptionally(throwable);
@@ -233,6 +233,27 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
         admin.close();
         if (client != null) {
             client.close();
+        }
+
+        deleteTopics();
+
+        log.info("KopBenchmarkDriver closed successfully");
+    }
+
+    private void deleteTopics() {
+        if (!config.deleteTopicsAfterTest) {
+            return;
+        }
+
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        try (PulsarAdmin admin1 = getPulsarAdmin(config.pulsarConfig)) {
+            for (String topic : topics) {
+                futures.add(admin1.topics().deleteAsync(topic));
+            }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+        } catch (Throwable ex) {
+            log.error("Failed to delete topics", ex);
         }
     }
 

@@ -29,4 +29,6 @@ public class RocketMQClientConfig {
     public Integer backpressureConcurrency;
     public String accessKey;
     public String secretKey;
+
+    public boolean deleteTopicAfterTest = false;
 }
