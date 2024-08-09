@@ -17,6 +17,11 @@ public class PulsarConfig {
 
     public String serviceUrl;
 
+    public String httpServiceUrl;
+
+    public String authPluginClassName;
+    public String authParamsString;
+
     // producer configs
     public boolean batchingEnabled = true;
     public boolean blockIfQueueFull = true;
@@ -28,4 +33,13 @@ public class PulsarConfig {
     // consumer configs
     public int maxTotalReceiverQueueSizeAcrossPartitions = 50000;
     public int receiverQueueSize = 1000;
+
+    public PersistentConfig persistent = new PersistentConfig();
+
+    public static class PersistentConfig {
+        public int ensembleSize = 3;
+        public int writeQuorumSize = 3;
+        public int ackQuorumSize = 2;
+        public boolean deduplicationEnabled = false;
+    }
 }

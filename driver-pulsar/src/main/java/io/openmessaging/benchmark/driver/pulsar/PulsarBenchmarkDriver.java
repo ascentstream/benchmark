@@ -29,10 +29,7 @@ import io.openmessaging.benchmark.driver.pulsar.config.PulsarConfig;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -64,6 +61,8 @@ public class PulsarBenchmarkDriver implements BenchmarkDriver {
 
     private String namespace;
     private ProducerBuilder<byte[]> producerBuilder;
+
+    private final Set<String> topics = new HashSet<>();
 
     @Override
     public void initialize(File configurationFile, StatsLogger statsLogger) throws IOException {
@@ -124,7 +123,9 @@ public class PulsarBenchmarkDriver implements BenchmarkDriver {
                         .batchingMaxBytes(config.producer.batchingMaxBytes)
                         .blockIfQueueFull(config.producer.blockIfQueueFull)
                         .sendTimeout(0, TimeUnit.MILLISECONDS)
-                        .maxPendingMessages(config.producer.pendingQueueSize);
+                        .maxPendingMessages(config.producer.pendingQueueSize)
+                        .roundRobinRouterBatchingPartitionSwitchFrequency(
+                                config.producer.batchingPartitionSwitchFrequencyByPublishDelay);
 
         try {
             // Create namespace and set the configuration
@@ -187,10 +188,10 @@ public class PulsarBenchmarkDriver implements BenchmarkDriver {
     public CompletableFuture<Void> createTopic(String topic, int partitions) {
         if (partitions == 1) {
             // No-op
-            return CompletableFuture.completedFuture(null);
+            return adminClient.topics().createNonPartitionedTopicAsync(topic).thenAccept(__ -> topics.add(topic));
         }
 
-        return adminClient.topics().createPartitionedTopicAsync(topic, partitions);
+        return adminClient.topics().createPartitionedTopicAsync(topic, partitions).thenAccept(__ -> topics.add(topic));
     }
 
     @Override
@@ -234,7 +235,8 @@ public class PulsarBenchmarkDriver implements BenchmarkDriver {
                 .topic(topic)
                 .subscriptionName(subscriptionName)
                 .receiverQueueSize(config.consumer.receiverQueueSize)
-                .maxTotalReceiverQueueSizeAcrossPartitions(Integer.MAX_VALUE)
+                .maxTotalReceiverQueueSizeAcrossPartitions(
+                        config.consumer.maxTotalReceiverQueueSizeAcrossPartitions)
                 .poolMessages(true)
                 .subscribeAsync();
     }
@@ -247,11 +249,28 @@ public class PulsarBenchmarkDriver implements BenchmarkDriver {
             client.close();
         }
 
+        deleteTopics();
         if (adminClient != null) {
             adminClient.close();
         }
-
         log.info("Pulsar benchmark driver successfully shut down");
+    }
+
+    private void deleteTopics() {
+        if (!config.deleteTopicsAfterTest || adminClient == null) {
+            return;
+        }
+
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        for (String topic : topics) {
+            futures.add(adminClient.topics().deleteAsync(topic));
+        }
+        try {
+            FutureUtil.waitForAll(futures).get();
+            adminClient.namespaces().deleteNamespace(namespace);
+        } catch (Exception e) {
+            log.error("Failed to delete topics", e);
+        }
     }
 
     private static final ObjectMapper mapper =

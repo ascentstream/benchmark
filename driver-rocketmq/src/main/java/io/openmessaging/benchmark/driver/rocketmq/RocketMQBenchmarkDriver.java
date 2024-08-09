@@ -26,6 +26,7 @@ import io.openmessaging.benchmark.driver.ConsumerCallback;
 import io.openmessaging.benchmark.driver.rocketmq.client.RocketMQClientConfig;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -60,6 +61,8 @@ public class RocketMQBenchmarkDriver implements BenchmarkDriver {
     private RocketMQClientConfig rmqClientConfig;
     DefaultMQProducer rmqProducer;
     private RPCHook rpcHook;
+
+    private final Set<String> topics = new HashSet<>();
 
     @Override
     public void initialize(final File configurationFile, final StatsLogger statsLogger)
@@ -137,6 +140,7 @@ public class RocketMQBenchmarkDriver implements BenchmarkDriver {
 
                         for (String brokerAddr : brokerList) {
                             this.rmqAdmin.createAndUpdateTopicConfig(brokerAddr, topicConfig);
+                            topics.add(topic);
                         }
                     } catch (Exception e) {
                         throw new RuntimeException(
@@ -240,7 +244,23 @@ public class RocketMQBenchmarkDriver implements BenchmarkDriver {
         if (this.rmqProducer != null) {
             this.rmqProducer.shutdown();
         }
+
+        deleteTopics();
         this.rmqAdmin.shutdown();
+    }
+
+    private void deleteTopics() {
+        if (!rmqClientConfig.deleteTopicAfterTest) {
+            return;
+        }
+
+        for (String topic : topics) {
+            try {
+                this.rmqAdmin.deleteTopic(topic, this.rmqClientConfig.clusterName);
+            } catch (Exception e) {
+                log.error("Failed to delete topic [{}]", topic, e);
+            }
+        }
     }
 
     private static final ObjectMapper mapper =

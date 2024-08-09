@@ -32,10 +32,7 @@ import io.streamnative.pulsar.handlers.kop.KafkaPayloadProcessor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +48,8 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.pulsar.client.admin.PulsarAdmin;
+import org.apache.pulsar.client.admin.PulsarAdminBuilder;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.ConsumerBuilder;
 import org.apache.pulsar.client.api.ProducerBuilder;
@@ -58,13 +57,17 @@ import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.SubscriptionType;
+import org.apache.pulsar.common.policies.data.PersistencePolicies;
 import org.apache.pulsar.common.util.FutureUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KopBenchmarkDriver implements BenchmarkDriver {
 
     private static final ObjectMapper mapper =
             new ObjectMapper(new YAMLFactory())
                     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final Logger log = LoggerFactory.getLogger(KopBenchmarkDriver.class);
 
     private final List<BenchmarkProducer> producers = new CopyOnWriteArrayList<>();
     private final List<BenchmarkConsumer> consumers = new CopyOnWriteArrayList<>();
@@ -76,6 +79,8 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
     private PulsarClient client = null;
     private ProducerBuilder<byte[]> producerBuilder = null;
     private ConsumerBuilder<ByteBuffer> consumerBuilder = null;
+
+    private final Set<String> topics = new HashSet<>();
 
     public static Config loadConfig(File file) throws IOException {
         return mapper.readValue(file, Config.class);
@@ -99,6 +104,21 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 
         final PulsarConfig pulsarConfig = config.pulsarConfig;
+
+        try (PulsarAdmin admin1 = getPulsarAdmin(pulsarConfig)) {
+            // Set namespace policies
+            PulsarConfig.PersistentConfig pc = pulsarConfig.persistent;
+            admin1.namespaces().setDeduplicationStatus("public/default", pc.deduplicationEnabled);
+            admin1
+                    .namespaces()
+                    .setPersistence(
+                            "public/default",
+                            new PersistencePolicies(pc.ensembleSize, pc.writeQuorumSize, pc.ackQuorumSize, 1.0));
+        } catch (Throwable ex) {
+            log.error("Failed to connect to Pulsar service at {}", pulsarConfig.serviceUrl, ex);
+            throw new RuntimeException(ex);
+        }
+
         if (config.producerType.equals(ClientType.PULSAR)) {
             producerBuilder =
                     getPulsarClient(pulsarConfig.serviceUrl)
@@ -138,6 +158,7 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
                 .whenComplete(
                         (result, throwable) -> {
                             if (throwable == null) {
+                                topics.add(topic);
                                 future.complete(result);
                             } else {
                                 future.completeExceptionally(throwable);
@@ -213,6 +234,35 @@ public class KopBenchmarkDriver implements BenchmarkDriver {
         if (client != null) {
             client.close();
         }
+
+        deleteTopics();
+
+        log.info("KopBenchmarkDriver closed successfully");
+    }
+
+    private void deleteTopics() {
+        if (!config.deleteTopicsAfterTest) {
+            return;
+        }
+
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        try (PulsarAdmin admin1 = getPulsarAdmin(config.pulsarConfig)) {
+            for (String topic : topics) {
+                futures.add(admin1.topics().deleteAsync(topic));
+            }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+        } catch (Throwable ex) {
+            log.error("Failed to delete topics", ex);
+        }
+    }
+
+    private PulsarAdmin getPulsarAdmin(PulsarConfig config) throws PulsarClientException {
+        PulsarAdminBuilder builder = PulsarAdmin.builder().serviceHttpUrl(config.httpServiceUrl);
+        if (config.authPluginClassName != null) {
+            builder.authentication(config.authPluginClassName, config.authParamsString);
+        }
+        return builder.build();
     }
 
     private PulsarClient getPulsarClient(String serviceUrl) throws PulsarClientException {

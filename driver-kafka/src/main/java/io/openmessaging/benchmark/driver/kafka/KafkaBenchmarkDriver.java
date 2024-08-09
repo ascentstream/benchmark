@@ -24,13 +24,7 @@ import io.openmessaging.benchmark.driver.ConsumerCallback;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -42,9 +36,12 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KafkaBenchmarkDriver implements BenchmarkDriver {
 
+    private static final Logger log = LoggerFactory.getLogger(KafkaBenchmarkDriver.class);
     private Config config;
 
     private List<BenchmarkProducer> producers = Collections.synchronizedList(new ArrayList<>());
@@ -55,6 +52,8 @@ public class KafkaBenchmarkDriver implements BenchmarkDriver {
     private Properties consumerProperties;
 
     private AdminClient admin;
+
+    private final Set<String> topics = new HashSet<>();
 
     @Override
     public void initialize(File configurationFile, StatsLogger statsLogger) throws IOException {
@@ -101,7 +100,13 @@ public class KafkaBenchmarkDriver implements BenchmarkDriver {
         Map<String, String> topicConfigs = new HashMap<>((Map) topicProperties);
         KafkaTopicCreator topicCreator =
                 new KafkaTopicCreator(admin, topicConfigs, config.replicationFactor);
-        return topicCreator.create(topicInfos);
+
+        return topicCreator.create(topicInfos)
+                .thenAccept(__ -> {
+                    for (TopicInfo topicInfo : topicInfos) {
+                        topics.add(topicInfo.getTopic());
+                    }
+                });
     }
 
     @Override
@@ -148,7 +153,21 @@ public class KafkaBenchmarkDriver implements BenchmarkDriver {
         for (BenchmarkConsumer consumer : consumers) {
             consumer.close();
         }
+
+        deleteTopics();
         admin.close();
+    }
+
+    private void deleteTopics() {
+        if (!config.deleteTopicAfterTest) {
+            return;
+        }
+
+        try {
+            admin.deleteTopics(topics).all().get();
+        } catch (Exception ex) {
+            log.error("Failed to delete topics", ex);
+        }
     }
 
     private static final ObjectMapper mapper =

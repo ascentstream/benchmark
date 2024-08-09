@@ -28,6 +28,8 @@ public class Config {
     public PulsarConfig pulsarConfig;
     public String kafkaConfig;
 
+    public boolean deleteTopicsAfterTest = false;
+
     public Properties getKafkaProperties() {
         if (StringUtils.isEmpty(kafkaConfig)) {
             throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " is not set");
